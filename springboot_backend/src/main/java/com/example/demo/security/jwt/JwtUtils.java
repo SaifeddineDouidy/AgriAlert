@@ -1,31 +1,43 @@
 package com.example.demo.security.jwt;
 
+import com.example.demo.appuser.AppUser;
+import com.example.demo.security.CustomUserDetails;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtils {
 
     private static final Key SIGNING_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-
+    private static final Integer EXPIRATION_TIME = 1000 * 60 * 60;
     // Generate a JWT token
-    public String generateToken(org.springframework.security.core.userdetails.UserDetails userDetails) {
+    public String generateToken(CustomUserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("firstName", userDetails.getFirstName());
+        claims.put("lastName", userDetails.getLastName());
+        claims.put("email", userDetails.getUsername());
+        claims.put("crops", userDetails.getCrops());
+        claims.put("roles", userDetails.getAppUserRole().name());
+
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SIGNING_KEY,SignatureAlgorithm.HS256) // Decode Base64 key
                 .compact();
     }
-
     // Validate JWT token (you can implement more checks here if needed)
     public boolean validateToken(String token, org.springframework.security.core.userdetails.UserDetails userDetails) {
         String username = extractUsername(token);

@@ -15,28 +15,30 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @AllArgsConstructor
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     @Lazy
     private AppUserService appUserService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final JwtRequestFilter jwtRequestFilter;  // Inject the JWT filter
+    private final JwtRequestFilter jwtRequestFilter;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/v1/login", "/api/v1/registration/**")  // Allow access to login and registration without token
+                .antMatchers("/api/v1/login", "/api/v1/registration/**")
                 .permitAll()
-                .anyRequest()  // All other requests require authentication
+                .anyRequest()
                 .authenticated()
                 .and()
-                .formLogin().disable(); // Disable form login as we're using JWT for authentication
+                .formLogin().disable();
 
         // Add JWT filter to the security chain before the UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
@@ -49,8 +51,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider();
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(bCryptPasswordEncoder);
         provider.setUserDetailsService(appUserService);
         return provider;
@@ -65,5 +66,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void setAppUserService(AppUserService appUserService) {
         this.appUserService = appUserService;
+    }
+
+    // Allow CORS for localhost:3000
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:3000") // Allow only localhost:3000
+                .allowedMethods("GET", "POST", "PUT", "DELETE") // Allow specific methods
+                .allowedHeaders("*") // Allow any headers
+                .allowCredentials(true); // Allow credentials (cookies, authorization headers)
     }
 }

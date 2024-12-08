@@ -1,8 +1,8 @@
 package com.example.demo.authentication;
 
-
 import com.example.demo.appuser.AppUser;
 import com.example.demo.appuser.AppUserRepository;
+import com.example.demo.security.CustomUserDetails;
 import com.example.demo.security.jwt.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,20 +41,15 @@ public class AuthService {
             throw new IllegalStateException("Invalid credentials");
         }
 
-        // Generate JWT token after successful login
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .withUsername(appUser.getEmail())
-                .password(appUser.getPassword())
-                .roles("USER")
-                .build();
+        // Create CustomUserDetails using the appUser entity
+        CustomUserDetails customUserDetails = new CustomUserDetails(appUser);
 
-        // Authenticating the user and generating JWT token
+        // Authenticate the user and generate JWT token
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userDetails.getUsername(), authenticationRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(customUserDetails.getUsername(), authenticationRequest.getPassword())
         );
 
         // Generate JWT token
-        return jwtUtil.generateToken(userDetails);
+        return jwtUtil.generateToken(customUserDetails);
     }
 }
-

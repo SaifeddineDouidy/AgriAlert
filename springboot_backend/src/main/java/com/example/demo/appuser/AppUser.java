@@ -26,16 +26,8 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class) // Enable JPA Auditing
 public class AppUser implements UserDetails {
 
-    @SequenceGenerator(
-            name = "student_sequence",
-            sequenceName = "student_sequence",
-            allocationSize = 1
-    )
     @Id
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "student_sequence"
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotEmpty(message = "First name cannot be empty")
