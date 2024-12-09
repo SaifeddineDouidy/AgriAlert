@@ -1,6 +1,7 @@
 package com.example.demo.appuser;
 
 import com.example.demo.location.Location;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -12,10 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -23,7 +21,8 @@ import java.util.List;
 @NoArgsConstructor
 @ToString(exclude = {"password"}) // Exclude sensitive data from logs
 @Entity
-@EntityListeners(AuditingEntityListener.class) // Enable JPA Auditing
+@EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class AppUser implements UserDetails {
 
     @Id
@@ -47,10 +46,10 @@ public class AppUser implements UserDetails {
     @Size(min = 10, max = 15, message = "Phone number must be between 10 and 15 characters")
     private String phoneNumber;
 
-    @CreatedDate // Automatically set when the entity is created
+    @CreatedDate
     private LocalDateTime createdAt;
 
-    @LastModifiedDate // Automatically set when the entity is updated
+    @LastModifiedDate
     private LocalDateTime lastLogin;
 
     @Enumerated(EnumType.STRING)
@@ -59,14 +58,13 @@ public class AppUser implements UserDetails {
     private Boolean locked = false;
     private Boolean enabled = false;
 
-    @ManyToOne
-    @JoinColumn(name = "location_id", nullable = true) // Allow temporary null value
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "location_id", referencedColumnName = "id")
     private Location location;
 
     @ElementCollection
     private List<String> crops = new ArrayList<>();
 
-    // Constructor with all parameters
     @Builder
     public AppUser(String firstName,
                    String lastName,
@@ -83,14 +81,13 @@ public class AppUser implements UserDetails {
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
-        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now(); // Default to now
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
         this.lastLogin = lastLogin;
         this.appUserRole = appUserRole;
         this.location = location;
         this.crops = crops != null ? crops : new ArrayList<>();
     }
 
-    // Automatically set the creation timestamp
     @PrePersist
     private void onCreate() {
         if (this.createdAt == null) {
@@ -100,9 +97,7 @@ public class AppUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority =
-                new SimpleGrantedAuthority(appUserRole.name());
-        return Collections.singletonList(authority);
+        return Collections.singletonList(new SimpleGrantedAuthority(appUserRole.name()));
     }
 
     @Override

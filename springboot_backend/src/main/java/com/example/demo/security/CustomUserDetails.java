@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import com.example.demo.appuser.AppUser;
 import com.example.demo.appuser.AppUserRole;
+import com.example.demo.location.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,8 +28,6 @@ public class CustomUserDetails implements UserDetails {
     public String getPassword() {
         return appUser.getPassword();
     }
-
-
 
     @Override
     public String getUsername() {
@@ -69,6 +68,17 @@ public class CustomUserDetails implements UserDetails {
 
     public AppUserRole getAppUserRole() {
         return appUser.getAppUserRole();
+    }
+
+    public List<Location> getLocations() {
+        if (appUser.getLocation() != null) {
+            List<Location> locations = new java.util.ArrayList<>();
+            locations.add(appUser.getLocation());
+            return locations;
+        } else {
+            List<Location> locations = new java.util.ArrayList<>();
+            return locations;
+        }
     }
 }
 

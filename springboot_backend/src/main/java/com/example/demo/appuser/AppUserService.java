@@ -1,6 +1,7 @@
 package com.example.demo.appuser;
 
 import com.example.demo.location.Location;
+import com.example.demo.location.LocationRepository;
 import com.example.demo.registration.token.ConfirmationToken;
 import com.example.demo.registration.token.ConfirmationTokenService;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class AppUserService implements UserDetailsService {
     private final AppUserRepository appUserRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final ConfirmationTokenService confirmationTokenService;
+    private final LocationRepository locationRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email)
@@ -83,36 +85,40 @@ public class AppUserService implements UserDetailsService {
     // Example method to update the location after registration
     @Transactional
     public String updateLocation(String email, double latitude, double longitude) {
-        // Fetch the user by email
         AppUser appUser = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("User not found"));
 
-        // Create a new Location object and associate it with the user
-        Location location = new Location(latitude, longitude);
-        appUser.setLocation(location); // Set the location in the user
+        // Fetch or create a Location object
+        Location location = appUser.getLocation() != null ? appUser.getLocation() : new Location();
+        location.setLatitude(latitude);
+        location.setLongitude(longitude);
 
-        // Save the user (location is also saved if cascading is enabled in the ORM)
+        // Save location if needed (if not cascading)
+        locationRepository.save(location);
+
+        // Associate with user and save user
+        appUser.setLocation(location);
         appUserRepository.save(appUser);
 
         return "Location updated successfully!";
     }
 
-    public String login(String email, String password) {
-        // Fetch the user by email
-        AppUser appUser = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
-
-        // Check if the password matches the hashed password in the database
-        if (!bCryptPasswordEncoder.matches(password, appUser.getPassword())) {
-            throw new IllegalStateException("Invalid password");
-        }
-
-        // Authenticate the user (using SecurityContext directly)
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(email, password));
-
-        return "Login successful"; // Or return a JWT token here
-    }
+//    public String login(String email, String password) {
+//        // Fetch the user by email
+//        AppUser appUser = appUserRepository.findByEmail(email)
+//                .orElseThrow(() -> new IllegalStateException("User not found"));
+//
+//        // Check if the password matches the hashed password in the database
+//        if (!bCryptPasswordEncoder.matches(password, appUser.getPassword())) {
+//            throw new IllegalStateException("Invalid password");
+//        }
+//
+//        // Authenticate the user (using SecurityContext directly)
+//        SecurityContextHolder.getContext().setAuthentication(
+//                new UsernamePasswordAuthenticationToken(email, password));
+//
+//        return "Login successful"; // Or return a JWT token here
+//    }
 
 
 }

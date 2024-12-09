@@ -52,6 +52,7 @@
 			<version>3.0.2</version>
 		</dependency>
 
+
 		<!-- JJWT API -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
@@ -115,7 +116,7 @@
 						</exclude>
 					</excludes>
 				</configuration>
-			</plugin>
+			</plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><source>8</source><target>8</target></configuration></plugin>
 		</plugins>
 	</build>
 </project>
