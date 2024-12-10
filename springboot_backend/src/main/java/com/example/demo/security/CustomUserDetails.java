@@ -34,6 +34,10 @@ public class CustomUserDetails implements UserDetails {
         return appUser.getEmail();
     }
 
+    public String getPhoneNumber() {
+        return appUser.getPhoneNumber();
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;

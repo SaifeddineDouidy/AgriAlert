@@ -29,6 +29,7 @@ public class JwtUtils {
         claims.put("firstName", userDetails.getFirstName());
         claims.put("lastName", userDetails.getLastName());
         claims.put("email", userDetails.getUsername());
+        claims.put("phoneNumber", userDetails.getPhoneNumber());
         claims.put("crops", userDetails.getCrops());
         claims.put("roles", userDetails.getAppUserRole().name());
 

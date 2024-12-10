@@ -65,6 +65,9 @@ public class AppUser implements UserDetails {
     @ElementCollection
     private List<String> crops = new ArrayList<>();
 
+    private String firebaseToken;  // Store the user's Firebase Cloud Messaging token
+
+
     @Builder
     public AppUser(String firstName,
                    String lastName,

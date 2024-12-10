@@ -43,8 +43,6 @@
 			<version>8.3.0</version>
 		</dependency>
 
-
-
 		<!-- https://mvnrepository.com/artifact/jakarta.validation/jakarta.validation-api -->
 		<dependency>
 			<groupId>jakarta.validation</groupId>
@@ -52,6 +50,12 @@
 			<version>3.0.2</version>
 		</dependency>
 
+		<!-- Firebase Admin SDK -->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>8.1.0</version>
+		</dependency>
 
 		<!-- JJWT API -->
 		<dependency>
