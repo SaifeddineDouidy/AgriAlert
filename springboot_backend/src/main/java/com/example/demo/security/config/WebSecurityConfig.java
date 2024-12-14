@@ -76,5 +76,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
                 .allowedMethods("GET", "POST", "PUT", "DELETE") // Allow specific methods
                 .allowedHeaders("*") // Allow any headers
                 .allowCredentials(true); // Allow credentials (cookies, authorization headers)
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:3001") // Allow only localhost:3000
+                .allowedMethods("GET", "POST", "PUT", "DELETE") // Allow specific methods
+                .allowedHeaders("*") // Allow any headers
+                .allowCredentials(true); // Allow credentials (cookies, authorization headers)
     }
 }

@@ -1,6 +1,5 @@
 package com.example.demo.alert;
 
-import com.example.demo.firebase.FirebaseAlertService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.appuser.AppUser;
@@ -19,13 +18,11 @@ public class WeatherTask {
 
     private final AppUserRepository appUserRepository;
     private final CropService cropService;
-    private final FirebaseAlertService firebaseService; // Add FirebaseService
 
     // Constructor with FirebaseService injected
-    public WeatherTask(AppUserRepository appUserRepository, CropService cropService, FirebaseAlertService firebaseService) {
+    public WeatherTask(AppUserRepository appUserRepository, CropService cropService) {
         this.appUserRepository = appUserRepository;
         this.cropService = cropService;
-        this.firebaseService = firebaseService; // Initialize FirebaseService
     }
 
     @Scheduled(cron = "0 0 6 * * ?")
@@ -69,14 +66,6 @@ public class WeatherTask {
             String weatherReport = cropService.checkWeatherForCrop(cropName, maxTemperature, minTemperature, maxRainfall, minRainfall);
             System.out.println("Weather report for " + cropName + ": \n" + weatherReport);
 
-            // Send an alert if conditions are critical (e.g., temperature or rainfall exceeds limits)
-            if (weatherReport.contains("Alert")) {
-                // Assuming the user has a Firebase token stored
-                String firebaseToken = user.getFirebaseToken();
-                if (firebaseToken != null) {
-                    firebaseService.sendNotification(firebaseToken, "Weather Alert", weatherReport);
-                }
-            }
         }
     }
 
