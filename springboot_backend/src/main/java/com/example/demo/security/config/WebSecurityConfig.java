@@ -39,6 +39,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
                 .authorizeRequests()
                 .antMatchers("/api/v1/login/**", "/api/v1/registration/**","/api/crops/**")
                 .permitAll()
+                .antMatchers("/api/v1/user/**").authenticated()
                 .anyRequest()
                 .authenticated()
                 .and()

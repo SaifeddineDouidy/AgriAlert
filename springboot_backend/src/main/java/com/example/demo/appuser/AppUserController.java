@@ -21,11 +21,6 @@ public class AppUserController {
     private final AppUserService appUserService;
     private final AppUserRepository appUserRepository;
 
-    /**
-     * Get the current user's profile information.
-     *
-     * @return the profile of the currently authenticated user
-     */
     @GetMapping("/profile")
     public ResponseEntity<AppUser> getProfile() {
         // Get the currently authenticated user's email
@@ -70,12 +65,6 @@ public class AppUserController {
 
     }
 
-    /**
-     * Update the user's location.
-     *
-     * @param locationUpdateRequest object containing latitude and longitude
-     * @return success message
-     */
     @PutMapping("/location")
     public ResponseEntity<String> updateLocation(@Valid @RequestBody LocationUpdateRequest locationUpdateRequest) {
         // Get the currently authenticated user's email

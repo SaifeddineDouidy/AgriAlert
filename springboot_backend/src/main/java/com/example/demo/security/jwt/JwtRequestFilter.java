@@ -36,7 +36,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // If the header is in the form of "Bearer token"
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7); // Extract token
-            username = jwtUtil.extractUsername(jwt); // Extract username (email in this case)
+            try {
+                username = jwtUtil.extractUsername(jwt); // Extract username
+            } catch (Exception e) {
+                logger.error("Invalid token: " + e.getMessage());
+            }
         }
 
         // If the token is valid and not already authenticated, authenticate the user
