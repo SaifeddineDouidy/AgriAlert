@@ -1,6 +1,6 @@
 package com.example.demo.security.jwt;
 
-import com.example.demo.location.Location;
+import com.example.demo.model.Location;
 import com.example.demo.security.CustomUserDetails;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

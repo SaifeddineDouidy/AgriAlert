@@ -1,8 +1,8 @@
 package com.example.demo.security;
 
-import com.example.demo.appuser.AppUser;
-import com.example.demo.appuser.AppUserRole;
-import com.example.demo.location.Location;
+import com.example.demo.model.AppUser;
+import com.example.demo.model.AppUserRole;
+import com.example.demo.model.Location;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
