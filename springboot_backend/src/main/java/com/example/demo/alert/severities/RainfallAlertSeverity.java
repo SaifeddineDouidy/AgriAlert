@@ -1,5 +1,8 @@
 package com.example.demo.alert.severities;
 
+import lombok.Getter;
+
+@Getter
 public enum RainfallAlertSeverity {
     LOW("Insufficient rainfall"),
     HIGH("Excessive rainfall");

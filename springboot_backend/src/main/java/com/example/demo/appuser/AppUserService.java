@@ -5,12 +5,6 @@ import com.example.demo.location.LocationRepository;
 import com.example.demo.registration.token.ConfirmationToken;
 import com.example.demo.registration.token.ConfirmationTokenService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AppUserService implements UserDetailsService {
 
-    private final static String USER_NOT_FOUND_MSG =
+    private static final String USER_NOT_FOUND_MSG =
             "user with email %s not found";
 
     private final AppUserRepository appUserRepository;
@@ -103,22 +97,6 @@ public class AppUserService implements UserDetailsService {
         return "Location updated successfully!";
     }
 
-//    public String login(String email, String password) {
-//        // Fetch the user by email
-//        AppUser appUser = appUserRepository.findByEmail(email)
-//                .orElseThrow(() -> new IllegalStateException("User not found"));
-//
-//        // Check if the password matches the hashed password in the database
-//        if (!bCryptPasswordEncoder.matches(password, appUser.getPassword())) {
-//            throw new IllegalStateException("Invalid password");
-//        }
-//
-//        // Authenticate the user (using SecurityContext directly)
-//        SecurityContextHolder.getContext().setAuthentication(
-//                new UsernamePasswordAuthenticationToken(email, password));
-//
-//        return "Login successful"; // Or return a JWT token here
-//    }
 
 
 }

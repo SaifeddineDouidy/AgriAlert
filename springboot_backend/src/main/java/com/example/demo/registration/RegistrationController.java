@@ -1,8 +1,9 @@
 package com.example.demo.registration;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -10,13 +11,15 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class RegistrationController {
 
+    private static final Logger logger = LoggerFactory.getLogger(RegistrationController.class);
+
     private final RegistrationService registrationService;
 
     @PostMapping(consumes = "application/json")
     public String register(@RequestBody RegistrationRequest request, @RequestHeader HttpHeaders headers) {
         // You can now access the raw request body and the headers
-        System.out.println("Received body: " + request);
-        System.out.println("Content-Type: " + headers.getContentType());
+        logger.info("Received body: {}" , request);
+        logger.info("Content-Type: {}" , headers.getContentType());
         return registrationService.register(request);
     }
 

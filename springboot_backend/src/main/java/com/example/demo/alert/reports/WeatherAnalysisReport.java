@@ -1,10 +1,12 @@
 package com.example.demo.alert.reports;
 
 import com.example.demo.crops.Crops;
-
 import java.util.List;
 
 public class WeatherAnalysisReport {
+
+    private WeatherAnalysisReport(){
+    }
 
     public static String generateDetailedReport(Crops crop, WeatherAnalysisResult result) {
         StringBuilder report = new StringBuilder();

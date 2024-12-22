@@ -2,13 +2,7 @@ package com.example.demo.appuser;
 
 import com.example.demo.appuser.profile.LocationUpdateRequest;
 import com.example.demo.appuser.profile.ProfileUpdateRequest;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

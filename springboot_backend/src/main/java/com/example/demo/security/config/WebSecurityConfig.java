@@ -15,7 +15,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -31,9 +33,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .cors() // Enable CORS
+                .and()
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/v1/login", "/api/v1/registration/**")
+                .antMatchers("/api/v1/login/**", "/api/v1/registration/**","/api/crops/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
@@ -68,18 +72,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
         this.appUserService = appUserService;
     }
 
-    // Allow CORS for localhost:3000
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000") // Allow only localhost:3000
-                .allowedMethods("GET", "POST", "PUT", "DELETE") // Allow specific methods
-                .allowedHeaders("*") // Allow any headers
-                .allowCredentials(true); // Allow credentials (cookies, authorization headers)
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3001") // Allow only localhost:3000
-                .allowedMethods("GET", "POST", "PUT", "DELETE") // Allow specific methods
-                .allowedHeaders("*") // Allow any headers
-                .allowCredentials(true); // Allow credentials (cookies, authorization headers)
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:3000"); // Allow frontend origin
+        configuration.setAllowCredentials(true); // Allow credentials (cookies, headers)
+        configuration.addAllowedHeader("*"); // Allow all headers
+        configuration.addAllowedMethod("*"); // Allow all methods (POST, GET, OPTIONS, etc.)
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

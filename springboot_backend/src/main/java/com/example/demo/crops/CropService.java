@@ -1,19 +1,27 @@
 package com.example.demo.crops;
 
-import com.example.demo.alert.AlertSeverity;
+import com.example.demo.alert.*;
 import com.example.demo.alert.severities.RainfallAlertSeverity;
 import com.example.demo.alert.severities.TemperatureAlertSeverity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+
 public class CropService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CropService.class);
 
     private static final Map<String, Crops> cropData = new HashMap<>();
 
@@ -45,6 +53,9 @@ public class CropService {
         cropData.put("Turmeric", new Crops("Turmeric", 20, 30, 150, 250));
     }
 
+    private CropService(){
+
+    }
     public static String checkWeatherForCrop(String cropName, double maxTemp, double minTemp, double maxRain, double minRain) {
         Crops crop = cropData.get(cropName);
         if (crop == null) {
@@ -65,102 +76,93 @@ public class CropService {
         double tempDeviationMax = calculateDeviation(maxTemp, crop.getMinTemp(), crop.getMaxTemp());
         double tempDeviationMin = calculateDeviation(minTemp, crop.getMinTemp(), crop.getMaxTemp());
 
-        // Handle max temperature
-        if (maxTemp > crop.getMaxTemp()) {
+        // Combine temperature analysis
+        if (maxTemp > crop.getMaxTemp() || minTemp > crop.getMaxTemp()) {
             result.addTemperatureAlert(TemperatureAlertSeverity.HIGH);
-            handleHighTemperature(maxTemp, crop, result);
-        } else if (maxTemp < crop.getMinTemp()) {
+            handleHighTemperature(Math.max(maxTemp, minTemp), crop, result);
+        } else if (maxTemp < crop.getMinTemp() || minTemp < crop.getMinTemp()) {
             result.addTemperatureAlert(TemperatureAlertSeverity.LOW);
-            handleLowTemperature(maxTemp, crop, result);
-        }
-
-        // Handle min temperature
-        if (minTemp > crop.getMaxTemp()) {
-            result.addTemperatureAlert(TemperatureAlertSeverity.HIGH);
-            handleHighTemperature(minTemp, crop, result);
-        } else if (minTemp < crop.getMinTemp()) {
-            result.addTemperatureAlert(TemperatureAlertSeverity.LOW);
-            handleLowTemperature(minTemp, crop, result);
+            handleLowTemperature(Math.min(maxTemp, minTemp), crop, result);
         }
 
         // Add growth impact insights
-        result.addInsight(String.format("Max temperature deviation: %.1f%%, Min temperature deviation: %.1f%%", Math.abs(tempDeviationMax) * 10, Math.abs(tempDeviationMin) * 10));
+        result.addInsight(String.format("Max temperature deviation: %.1f%%, Min temperature deviation: %.1f%%",
+                Math.abs(tempDeviationMax) * 10, Math.abs(tempDeviationMin) * 10));
     }
 
     private static void analyzeRainfall(Crops crop, double maxRain, double minRain, WeatherAnalysisResult result) {
         double rainDeviationMax = calculateDeviation(maxRain, crop.getMinRain(), crop.getMaxRain());
         double rainDeviationMin = calculateDeviation(minRain, crop.getMinRain(), crop.getMaxRain());
 
-        // Handle max rainfall
-        if (maxRain > crop.getMaxRain()) {
+        // Combine rainfall analysis
+        if (maxRain > crop.getMaxRain() || minRain > crop.getMaxRain()) {
             result.addRainfallAlert(RainfallAlertSeverity.HIGH);
-            handleHighRainfall(maxRain, crop, result);
-        } else if (maxRain < crop.getMinRain()) {
+            handleHighRainfall(Math.max(maxRain, minRain), crop, result);
+        } else if (maxRain < crop.getMinRain() || minRain < crop.getMinRain()) {
             result.addRainfallAlert(RainfallAlertSeverity.LOW);
-            handleLowRainfall(maxRain, crop, result);
-        }
-
-        // Handle min rainfall
-        if (minRain > crop.getMaxRain()) {
-            result.addRainfallAlert(RainfallAlertSeverity.HIGH);
-            handleHighRainfall(minRain, crop, result);
-        } else if (minRain < crop.getMinRain()) {
-            result.addRainfallAlert(RainfallAlertSeverity.LOW);
-            handleLowRainfall(minRain, crop, result);
+            handleLowRainfall(Math.min(maxRain, minRain), crop, result);
         }
 
         // Add moisture impact insights
-        result.addInsight(String.format("Max rainfall deviation: %.1f%%, Min rainfall deviation: %.1f%%", Math.abs(rainDeviationMax) * 10, Math.abs(rainDeviationMin) * 10));
+        result.addInsight(String.format("Max rainfall deviation: %.1f%%, Min rainfall deviation: %.1f%%",
+                Math.abs(rainDeviationMax) * 10, Math.abs(rainDeviationMin) * 10));
+    }
+
+    // Add this method to ensure no duplicate recommendations
+    private static void addRecommendation(WeatherAnalysisResult result, String recommendation) {
+        if (!result.getRecommendations().contains(recommendation)) {
+            result.getRecommendations().add(recommendation);
+        }
+    }
+
+    // Update the handler methods to use the new addRecommendation method
+    private static void handleHighTemperature(double userTemp, Crops crop, WeatherAnalysisResult result) {
+        if (userTemp > crop.getMaxTemp() + 5) {
+            addRecommendation(result, "Extreme heat warning. Implement emergency cooling strategies.");
+            addRecommendation(result, "Use shade nets, increase irrigation, and avoid midday activities.");
+            result.setSeverity(AlertSeverity.HIGH);
+        } else {
+            addRecommendation(result, "Protect crops from heat stress.");
+            addRecommendation(result, "Provide temporary shade and increase watering frequency.");
+            result.setSeverity(AlertSeverity.MEDIUM);
+        }
     }
 
     private static void handleLowTemperature(double userTemp, Crops crop, WeatherAnalysisResult result) {
         if (userTemp < crop.getMinTemp() - 5) {
-            result.addRecommendation("Extreme cold detected. Use frost blankets or greenhouse protection.");
-            result.addRecommendation("Consider using heating systems for sensitive crops.");
+            addRecommendation(result, "Extreme cold detected. Use frost blankets or greenhouse protection.");
+            addRecommendation(result, "Consider using heating systems for sensitive crops.");
             result.setSeverity(AlertSeverity.HIGH);
         } else {
-            result.addRecommendation("Implement frost protection measures.");
-            result.addRecommendation("Cover crops with mulch to retain soil warmth.");
-            result.setSeverity(AlertSeverity.MEDIUM);
-        }
-    }
-
-    private static void handleHighTemperature(double userTemp, Crops crop, WeatherAnalysisResult result) {
-        if (userTemp > crop.getMaxTemp() + 5) {
-            result.addRecommendation("Extreme heat warning. Implement emergency cooling strategies.");
-            result.addRecommendation("Use shade nets, increase irrigation, and avoid midday activities.");
-            result.setSeverity(AlertSeverity.HIGH);
-        } else {
-            result.addRecommendation("Protect crops from heat stress.");
-            result.addRecommendation("Provide temporary shade and increase watering frequency.");
-            result.setSeverity(AlertSeverity.MEDIUM);
-        }
-    }
-
-    private static void handleLowRainfall(double userRain, Crops crop, WeatherAnalysisResult result) {
-        if (userRain < crop.getMinRain() - 50) {
-            result.addRecommendation("Severe drought conditions detected. Immediate irrigation required.");
-            result.addRecommendation("Consider emergency water conservation and crop protection measures.");
-            result.setSeverity(AlertSeverity.HIGH);
-        } else {
-            result.addRecommendation("Implement water conservation techniques.");
-            result.addRecommendation("Use drip irrigation or micro-sprinkler systems.");
+            addRecommendation(result, "Implement frost protection measures.");
+            addRecommendation(result, "Cover crops with mulch to retain soil warmth.");
             result.setSeverity(AlertSeverity.MEDIUM);
         }
     }
 
     private static void handleHighRainfall(double userRain, Crops crop, WeatherAnalysisResult result) {
         if (userRain > crop.getMaxRain() + 50) {
-            result.addRecommendation("Flood risk detected. Implement immediate drainage solutions.");
-            result.addRecommendation("Prepare for potential crop relocation or protection.");
+            addRecommendation(result, "Flood risk detected. Implement immediate drainage solutions.");
+            addRecommendation(result, "Prepare for potential crop relocation or protection.");
             result.setSeverity(AlertSeverity.HIGH);
         } else {
-            result.addRecommendation("Ensure proper drainage to prevent waterlogging.");
-            result.addRecommendation("Use raised beds or improve soil drainage.");
+            addRecommendation(result, "Ensure proper drainage to prevent waterlogging.");
+            addRecommendation(result, "Use raised beds or improve soil drainage.");
             result.setSeverity(AlertSeverity.MEDIUM);
         }
     }
 
+    private static void handleLowRainfall(double userRain, Crops crop, WeatherAnalysisResult result) {
+        if (userRain < crop.getMinRain() - 50) {
+            addRecommendation(result, "Severe drought conditions detected. Immediate irrigation required.");
+            addRecommendation(result, "Consider emergency water conservation and crop protection measures.");
+            result.setSeverity(AlertSeverity.HIGH);
+        } else {
+            addRecommendation(result, "Implement water conservation techniques.");
+            addRecommendation(result, "Use drip irrigation or micro-sprinkler systems.");
+            result.setSeverity(AlertSeverity.MEDIUM);
+        }
+    }
     private static double calculateDeviation(double currentValue, double minValue, double maxValue) {
         if (currentValue < minValue) {
             return (minValue - currentValue) / minValue;
@@ -170,44 +172,147 @@ public class CropService {
         return 0;
     }
 
-    private static String generateDetailedReport(String cropName, WeatherAnalysisResult result) {
-        StringBuilder report = new StringBuilder();
+    private static List<Alert> generateAlerts(WeatherAnalysisResult result, String cropName) {
+        List<Alert> alerts = new ArrayList<>();
 
-        // Title and Crop Identification
-        report.append("Weather Analysis Report for ").append(cropName).append("\n\n");
+        // Temperature Alerts
+        for (TemperatureAlertSeverity tempAlert : result.getTemperatureAlerts()) {
+            Alert alert = new Alert();
+            AlertType alertType = determineAlertType(tempAlert);
+            alert.setType(alertType);
+            alert.setSeverity(result.getSeverity());
 
-        // Severity Assessment
-        report.append("Overall Severity: ").append(result.getSeverity()).append("\n\n");
-
-        // Alerts Section
-        if (!result.getTemperatureAlerts().isEmpty()) {
-            report.append("Temperature Alerts:\n");
-            result.getTemperatureAlerts().forEach(alert -> report.append("- ").append(alert).append("\n"));
-            report.append("\n");
+            switch (tempAlert) {
+                case HIGH:
+                    alert.setTitle("High Temperature Alert");
+                    alert.setMessage(String.format("Temperature exceeds optimal range for %s. Risk of heat stress.", cropName));
+                    break;
+                case LOW:
+                    alert.setTitle("Low Temperature Alert");
+                    alert.setMessage(String.format("Temperature below optimal range for %s. Risk of cold damage.", cropName));
+                    break;
+                default:
+                    continue;
+            }
+            alerts.add(alert);
         }
 
-        if (!result.getRainfallAlerts().isEmpty()) {
-            report.append("Rainfall Alerts:\n");
-            result.getRainfallAlerts().forEach(alert -> report.append("- ").append(alert).append("\n"));
-            report.append("\n");
+        // Rainfall Alerts
+        for (RainfallAlertSeverity rainAlert : result.getRainfallAlerts()) {
+            Alert alert = new Alert();
+            AlertType alertType = determineAlertType(rainAlert);
+            alert.setType(alertType);
+            alert.setSeverity(result.getSeverity());
+
+            switch (rainAlert) {
+                case HIGH:
+                    alert.setTitle("High Rainfall Alert");
+                    alert.setMessage(String.format("Rainfall exceeds optimal range for %s. Risk of waterlogging.", cropName));
+                    break;
+                case LOW:
+                    alert.setTitle("Low Rainfall Alert");
+                    alert.setMessage(String.format("Rainfall below optimal range for %s. Risk of drought stress.", cropName));
+                    break;
+                default:
+                    continue;
+            }
+            alerts.add(alert);
         }
 
-        // Recommendations Section
-        if (!result.getRecommendations().isEmpty()) {
-            report.append("Recommended Actions:\n");
-            result.getRecommendations().forEach(rec -> report.append("- ").append(rec).append("\n"));
-            report.append("\n");
-        }
-
-        // Insights Section
-        if (!result.getInsights().isEmpty()) {
-            report.append("Additional Insights:\n");
-            result.getInsights().forEach(insight -> report.append("- ").append(insight).append("\n"));
-        }
-
-        return report.toString();
+        return alerts;
     }
 
+    private static AlertType determineAlertType(TemperatureAlertSeverity severity) {
+        switch (severity) {
+            case HIGH:
+                return AlertType.ERROR;
+            case LOW:
+                return AlertType.WARNING;
+            default:
+                return AlertType.INFO;
+        }
+    }
+
+    private static AlertType determineAlertType(RainfallAlertSeverity severity) {
+        switch (severity) {
+            case HIGH:
+                return AlertType.ERROR;
+            case LOW:
+                return AlertType.WARNING;
+            default:
+                return AlertType.INFO;
+        }
+    }
+
+    private static List<Recommendation> generateRecommendations(WeatherAnalysisResult result) {
+        return result.getRecommendations().stream()
+                .map(Recommendation::new)
+                .collect(Collectors.toList());
+    }
+
+    private static String generateDetailedReport(String cropName, WeatherAnalysisResult result) {
+        try {
+            List<Alert> alerts = generateAlerts(result, cropName);
+            List<Recommendation> recommendations = generateRecommendations(result);
+
+            StringBuilder report = new StringBuilder();
+
+            // Title and Crop Identification
+            report.append("Weather Analysis Report for ").append(cropName).append("\n\n");
+
+            // Overall Severity
+            report.append("Overall Severity: ").append(result.getSeverity()).append("\n\n");
+
+            // Alerts Section
+            if (!alerts.isEmpty()) {
+                report.append("Alerts:\n");
+                alerts.forEach(alert -> {
+                    String alertPrefix = getAlertPrefix(alert.getType());
+                    report.append(alertPrefix)
+                            .append(" ").append(alert.getTitle())
+                            .append("\n   ").append(alert.getMessage())
+                            .append("\n   Severity: ").append(alert.getSeverity())
+                            .append("\n\n");
+                });
+            }
+
+            // Recommendations Section
+            if (!recommendations.isEmpty()) {
+                report.append("Recommended Actions:\n");
+                recommendations.forEach(rec ->
+                        report.append("- ").append(rec.getMessage()).append("\n")
+                );
+                report.append("\n");
+            }
+
+            // Insights Section
+            if (!result.getInsights().isEmpty()) {
+                report.append("Additional Insights:\n");
+                result.getInsights().forEach(insight ->
+                        report.append("- ").append(insight).append("\n")
+                );
+            }
+
+            return report.toString();
+
+        } catch (Exception e) {
+            logger.info("Error generating report: {}", e.getMessage());
+            return String.format("Error generating detailed report for %s. Please check the system logs.", cropName);
+        }
+    }
+
+    private static String getAlertPrefix(AlertType type) {
+        switch (type) {
+            case ERROR:
+                return "❌";
+            case WARNING:
+                return "⚠️";
+            case INFO:
+                return "ℹ️";
+            default:
+                return "-";
+        }
+    }
 
     @Getter
     static class WeatherAnalysisResult {

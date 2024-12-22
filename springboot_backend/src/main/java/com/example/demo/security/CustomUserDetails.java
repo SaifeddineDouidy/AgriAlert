@@ -3,16 +3,15 @@ package com.example.demo.security;
 import com.example.demo.appuser.AppUser;
 import com.example.demo.appuser.AppUserRole;
 import com.example.demo.location.Location;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomUserDetails.class);
     private final AppUser appUser;
 
     public CustomUserDetails(AppUser appUser) {
@@ -75,14 +74,10 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public List<Location> getLocations() {
-        if (appUser.getLocation() != null) {
-            List<Location> locations = new java.util.ArrayList<>();
-            locations.add(appUser.getLocation());
-            return locations;
-        } else {
-            List<Location> locations = new java.util.ArrayList<>();
-            return locations;
-        }
+        return appUser.getLocation() != null
+                ? Collections.singletonList(appUser.getLocation())
+                : Collections.emptyList();
     }
+
 }
 

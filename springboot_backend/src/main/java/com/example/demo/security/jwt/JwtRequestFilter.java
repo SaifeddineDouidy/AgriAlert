@@ -2,10 +2,8 @@ package com.example.demo.security.jwt;
 
 
 import com.example.demo.appuser.AppUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import javax.servlet.FilterChain;
@@ -16,11 +14,14 @@ import java.io.IOException;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtils jwtUtil; // JwtUtil is the utility class to generate/validate JWT tokens
+    private final JwtUtils jwtUtil; // JwtUtil is the utility class to generate/validate JWT tokens
 
-    @Autowired
-    private AppUserService appUserService; // Service to load user details based on token
+    private final AppUserService appUserService; // Service to load user details based on token
+
+    public JwtRequestFilter(JwtUtils jwtUtil, AppUserService appUserService) {
+        this.jwtUtil = jwtUtil;
+        this.appUserService = appUserService;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, javax.servlet.http.HttpServletResponse response, FilterChain filterChain)
@@ -39,15 +40,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         // If the token is valid and not already authenticated, authenticate the user
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtUtil.validateToken(jwt, appUserService.loadUserByUsername(username))) {
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null && jwtUtil.validateToken(jwt, appUserService.loadUserByUsername(username))) {
                 // If the token is valid, set the authentication in the security context
-                WebAuthenticationDetailsSource detailsSource = new WebAuthenticationDetailsSource();
                 SecurityContextHolder.getContext().setAuthentication(
                         new UsernamePasswordAuthenticationToken(username, null, appUserService.loadUserByUsername(username).getAuthorities())
                 );
             }
-        }
+
 
         // Proceed with the request
         filterChain.doFilter(request, response);

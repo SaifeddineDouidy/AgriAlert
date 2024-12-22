@@ -6,6 +6,8 @@ import com.example.demo.appuser.AppUser;
 import com.example.demo.appuser.AppUserRepository;
 import com.example.demo.location.Location;
 import com.example.demo.crops.CropService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -16,16 +18,17 @@ import java.util.List;
 @Service
 public class WeatherTask {
 
+    private static final Logger logger = LoggerFactory.getLogger(WeatherTask.class);
+
     private final AppUserRepository appUserRepository;
     private final CropService cropService;
 
-    // Constructor with FirebaseService injected
     public WeatherTask(AppUserRepository appUserRepository, CropService cropService) {
         this.appUserRepository = appUserRepository;
         this.cropService = cropService;
     }
 
-    @Scheduled(cron = "0 0 6 * * ?")
+    @Scheduled(cron = "0 0 6 * * ?") // Scheduled at 6 AM daily
     public void fetchWeatherData() {
         List<AppUser> users = appUserRepository.findAll();
 
@@ -35,37 +38,46 @@ public class WeatherTask {
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
 
-                // Fetch weather data for the user's location
-                String weatherData = fetchWeatherForLocation(latitude, longitude);
+                try {
+                    // Fetch weather data for the user's location
+                    String weatherData = fetchWeatherForLocation(latitude, longitude);
 
-                // Extract max and min temperatures and rainfall from the fetched weather data
-                double[] temperatures = extractTemperatures(weatherData);
-                double[] rainfall = extractRainfall(weatherData);
+                    // Extract max and min temperatures and rainfall from the fetched weather data
+                    double[] temperatures = extractTemperatures(weatherData);
+                    double[] rainfall = extractRainfall(weatherData);
 
-                // Process the weather data for the user with both min and max temperatures and rainfall
-                processWeatherData(user, temperatures[0], temperatures[1], rainfall[0], rainfall[1]);
+                    // Process the weather data for the user
+                    processWeatherData(user, temperatures[0], temperatures[1], rainfall[0], rainfall[1]);
+
+                } catch (Exception e) {
+                    logger.error("Failed to fetch or process weather data for user {}: {}", user.getEmail(), e.getMessage());
+                }
             }
         }
     }
 
     private String fetchWeatherForLocation(double latitude, double longitude) {
         String url = "https://api.open-meteo.com/v1/forecast";
-        String params = String.format("?latitude=%f&longitude=%f&daily=temperature_2m_max,temperature_2m_min,rain_sum&forecast_days=2", latitude, longitude);
+        String params = String.format(
+                "?latitude=%f&longitude=%f&daily=temperature_2m_max,temperature_2m_min,rain_sum&forecast_days=2",
+                latitude, longitude);
 
-        RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(url + params, String.class);
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            return restTemplate.getForObject(url + params, String.class);
+        } catch (Exception e) {
+            logger.error("Failed to fetch weather data for location [{}, {}]: {}", latitude, longitude, e.getMessage());
+            return null;
+        }
     }
 
     public void processWeatherData(AppUser user, double maxTemperature, double minTemperature, double maxRainfall, double minRainfall) {
-        // Logic to parse the weather data and compare with crop thresholds
-        System.out.println("Weather data for user " + user.getEmail() + ": Max Temp: " + maxTemperature + ", Min Temp: " + minTemperature +
-                ", Max Rainfall: " + maxRainfall + ", Min Rainfall: " + minRainfall);
+        logger.info("Weather data for user {}: Max Temp: {}, Min Temp: {}, Max Rainfall: {}, Min Rainfall: {}",
+                user.getEmail(), maxTemperature, minTemperature, maxRainfall, minRainfall);
 
-        // Example of how you might generate an alert for a user's crops
         for (String cropName : user.getCrops()) {
             String weatherReport = cropService.checkWeatherForCrop(cropName, maxTemperature, minTemperature, maxRainfall, minRainfall);
-            System.out.println("Weather report for " + cropName + ": \n" + weatherReport);
-
+            logger.info("Weather report for crop {}: {}", cropName, weatherReport);
         }
     }
 
@@ -73,16 +85,18 @@ public class WeatherTask {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(weatherData);
-
-            // Get the "daily" node where the temperature data is located
             JsonNode dailyNode = rootNode.path("daily");
+
+            if (dailyNode.isMissingNode() || dailyNode.isEmpty()) {
+                throw new IOException("Missing 'daily' node in weather data.");
+            }
 
             double maxTemperature = dailyNode.path("temperature_2m_max").get(0).asDouble();
             double minTemperature = dailyNode.path("temperature_2m_min").get(0).asDouble();
 
             return new double[]{maxTemperature, minTemperature};
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error parsing temperature data: {}", e.getMessage());
             return new double[]{0.0, 0.0};
         }
     }
@@ -91,26 +105,19 @@ public class WeatherTask {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(weatherData);
+            JsonNode dailyNode = rootNode.path("daily");
 
-            JsonNode hourlyNode = rootNode.path("hourly");
-            JsonNode rainData = hourlyNode.path("rain");
-
-            double maxRainfall = 0.0;
-            double minRainfall = Double.MAX_VALUE;
-
-            for (int i = 24; i < rainData.size(); i++) {
-                double rainfall = rainData.get(i).asDouble();
-                if (rainfall > maxRainfall) {
-                    maxRainfall = rainfall;
-                }
-                if (rainfall < minRainfall) {
-                    minRainfall = rainfall;
-                }
+            if (dailyNode.isMissingNode() || dailyNode.isEmpty()) {
+                throw new IOException("Missing 'daily' node in weather data.");
             }
+
+            JsonNode rainData = dailyNode.path("rain_sum");
+            double maxRainfall = rainData.get(0).asDouble(); // Day 1 rainfall
+            double minRainfall = rainData.get(1).asDouble(); // Day 2 rainfall
 
             return new double[]{maxRainfall, minRainfall};
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error parsing rainfall data: {}", e.getMessage());
             return new double[]{0.0, 0.0};
         }
     }

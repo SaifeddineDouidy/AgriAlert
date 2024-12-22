@@ -58,6 +58,7 @@ public class AppUser implements UserDetails {
     private Boolean locked = false;
     private Boolean enabled = false;
 
+    
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "location_id", referencedColumnName = "id")
     private Location location;
@@ -65,7 +66,6 @@ public class AppUser implements UserDetails {
     @ElementCollection
     private List<String> crops = new ArrayList<>();
 
-    private String firebaseToken;  // Store the user's Firebase Cloud Messaging token
 
 
     @Builder

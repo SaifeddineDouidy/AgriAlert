@@ -1,5 +1,8 @@
 package com.example.demo.alert.severities;
 
+import lombok.Getter;
+
+@Getter
 public enum TemperatureAlertSeverity {
     LOW("Temperature below optimal range"),
     HIGH("Temperature above optimal range");
