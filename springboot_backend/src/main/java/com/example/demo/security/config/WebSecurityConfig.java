@@ -1,58 +1,69 @@
 package com.example.demo.security.config;
 
-import com.example.demo.appuser.AppUserService;
+import com.example.demo.service.AppUserService;
 import com.example.demo.security.jwt.JwtRequestFilter;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
-@AllArgsConstructor
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
+@AllArgsConstructor
+public class WebSecurityConfig {
 
-    @Lazy
-    private AppUserService appUserService;
+    private final AppUserService appUserService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtRequestFilter jwtRequestFilter;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    /**
+     * Define security filter chain configuration.
+     */
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors() // Enable CORS
-                .and()
-                .csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/api/v1/login/**", "/api/v1/registration/**","/api/crops/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .formLogin().disable();
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(
+                                "/api/v1/login/**",
+                                "/api/v1/registration/**",
+                                "/api/crops/**",
+                                "/swagger-ui/**", "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers("/api/v1/user/**").authenticated()  // Secure the /api/v1/user/** route
+                        .anyRequest().authenticated()  // Secure other routes
+                )
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
-        // Add JWT filter to the security chain before the UsernamePasswordAuthenticationFilter
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(daoAuthenticationProvider());
+    /**
+     * Define authentication manager as a bean.
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
+    /**
+     * Define the DAO authentication provider.
+     */
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -61,21 +72,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
         return provider;
     }
 
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
-
-    @Autowired
-    public void setAppUserService(AppUserService appUserService) {
-        this.appUserService = appUserService;
-    }
-
+    /**
+     * CORS configuration source.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:3000"); // Allow frontend origin
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000")); // Allow frontend origin
         configuration.setAllowCredentials(true); // Allow credentials (cookies, headers)
         configuration.addAllowedHeader("*"); // Allow all headers
         configuration.addAllowedMethod("*"); // Allow all methods (POST, GET, OPTIONS, etc.)

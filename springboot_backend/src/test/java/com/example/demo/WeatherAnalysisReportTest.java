@@ -1,11 +1,11 @@
 package com.example.demo;
 
-import com.example.demo.alert.reports.WeatherAnalysisReport;
-import com.example.demo.alert.reports.WeatherAnalysisResult;
-import com.example.demo.alert.severities.RainfallAlertSeverity;
-import com.example.demo.alert.severities.TemperatureAlertSeverity;
-import com.example.demo.crops.Crops;
-import com.example.demo.crops.CropService;
+import com.example.demo.utils.alert.reports.WeatherAnalysisReport;
+import com.example.demo.utils.alert.reports.WeatherAnalysisResult;
+import com.example.demo.utils.alert.severities.RainfallAlertSeverity;
+import com.example.demo.utils.alert.severities.TemperatureAlertSeverity;
+import com.example.demo.model.Crops;
+import com.example.demo.service.CropService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
