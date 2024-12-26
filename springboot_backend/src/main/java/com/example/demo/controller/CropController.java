@@ -25,12 +25,10 @@ import java.util.stream.Collectors;
 public class CropController {
 
     private static final Logger logger = LoggerFactory.getLogger(CropController.class);
-    private final CropService cropService;
     private final ReportParserService reportParserService;
 
     @Autowired
-    public CropController(CropService cropService, ReportParserService reportParserService) {
-        this.cropService = cropService;
+    public CropController(ReportParserService reportParserService) {
         this.reportParserService = reportParserService;
     }
 
