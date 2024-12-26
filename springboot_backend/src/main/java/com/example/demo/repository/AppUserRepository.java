@@ -24,4 +24,11 @@ public interface AppUserRepository
     int enableAppUser(String email);
     List<AppUser> findAll();
 
+    Optional<AppUser> findOneByEmailAndPassword(String email, String password);
+
+    @Transactional
+    @Modifying
+    @Query("update AppUser u set u.password = ?2 where u.email = ?1")
+    void updatePassword(String email, String password);
+
 }

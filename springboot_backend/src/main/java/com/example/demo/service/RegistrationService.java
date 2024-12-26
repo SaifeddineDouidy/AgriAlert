@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.model.AppUser;
 import com.example.demo.model.AppUserRole;
+import com.example.demo.model.Location;
+import com.example.demo.repository.LocationRepository;
 import com.example.demo.utils.registration.EmailValidator;
 import com.example.demo.utils.registration.RegistrationRequest;
 import com.example.demo.utils.email.EmailSender;
@@ -21,6 +23,7 @@ public class RegistrationService {
     private final EmailValidator emailValidator;
     private final ConfirmationTokenService confirmationTokenService;
     private final EmailSender emailSender;
+    private final LocationRepository locationRepository ;
 
     public String register(RegistrationRequest request) {
         boolean isValidEmail = emailValidator.test(request.getEmail());
@@ -28,6 +31,13 @@ public class RegistrationService {
         if (!isValidEmail) {
             throw new IllegalStateException("email not valid");
         }
+
+        Location location = new Location();
+        location.setLatitude(request.getLocation().getLatitude());
+        location.setLongitude(request.getLocation().getLongitude());
+
+// Save the location if needed (if not already managed by cascading)
+        location = locationRepository.save(location);
 
         // Registering the user with additional fields: phoneNumber, location, and crops
         String token = appUserService.signUpUser(
@@ -40,7 +50,7 @@ public class RegistrationService {
                         null, // createdAt will be set automatically in the AppUser constructor
                         null, // lastLogin remains null for now
                         AppUserRole.USER, // User role
-                        null, // Assuming location is not passed in the RegistrationRequest, handle accordingly
+                        location, // Assuming location is not passed in the RegistrationRequest, handle accordingly
                         request.getCrops()  // Added crops list
                 )
         );

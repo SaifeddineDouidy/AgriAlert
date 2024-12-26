@@ -18,6 +18,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+
     @Autowired
     public AuthService(AppUserRepository appUserRepository, JwtUtils jwtUtil, AuthenticationManager authenticationManager, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.appUserRepository = appUserRepository;
@@ -36,7 +37,9 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalStateException("User with email " + email + " not found"));
 
         // Check if the password matches the stored one
-        if (!bCryptPasswordEncoder.matches(password, appUser.getPassword())) {
+        // Commenting out bcrypt password comparison for now
+         if (!bCryptPasswordEncoder.matches(password, appUser.getPassword())) {
+//        if (!password.equals(appUser.getPassword())) {
             throw new IllegalStateException("Invalid credentials");
         }
 

@@ -1,6 +1,5 @@
 package com.example.demo.utils.email;
 
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,29 +11,38 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 @Service
-@AllArgsConstructor
 public class EmailService implements EmailSender{
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender javaMailSender;
 
-    @Override
+    public EmailService(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+    }
+
+
     @Async
-    public void send(String to, String email) {
+    public void sendEmail(EmailBody emailBody) {
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper =
                     new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setText(email, true);
-            helper.setTo(to);
-            helper.setSubject("Confirm your email");
+            helper.setText(emailBody.text(), true);
+            helper.setTo(emailBody.to());
+            helper.setSubject(emailBody.subject());
             helper.setFrom("douidysifeddine@gmail.com");
-            mailSender.send(mimeMessage);
+            javaMailSender.send(mimeMessage);
         } catch (MessagingException e) {
             LOGGER.error("failed to send email", e);
             throw new IllegalStateException("failed to send email");
         }
+    }
+
+
+    @Override
+    public void send(String to, String email) {
+
     }
 }

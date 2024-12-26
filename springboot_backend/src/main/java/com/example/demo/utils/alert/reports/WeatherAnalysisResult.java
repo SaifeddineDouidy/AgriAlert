@@ -13,11 +13,12 @@ import java.util.List;
 
 public class WeatherAnalysisResult {
     @Setter
-    private final AlertSeverity severity = AlertSeverity.LOW;
+    private AlertSeverity severity = AlertSeverity.LOW;
     private final List<TemperatureAlertSeverity> temperatureAlerts = new ArrayList<>();
     private final List<RainfallAlertSeverity> rainfallAlerts = new ArrayList<>();
     private final List<String> recommendations = new ArrayList<>();
     private final List<String> insights = new ArrayList<>();
+
 
     public void addTemperatureAlert(TemperatureAlertSeverity alert) {
         temperatureAlerts.add(alert);

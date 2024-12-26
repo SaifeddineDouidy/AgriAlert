@@ -18,7 +18,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
@@ -27,6 +26,7 @@ import java.util.Collections;
 public class WebSecurityConfig {
 
     private final AppUserService appUserService;
+    // Commenting out BCryptPasswordEncoder for now
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtRequestFilter jwtRequestFilter;
 
@@ -37,13 +37,16 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
+                // CSRF is disabled as this application uses stateless JWT authentication, which is immune to CSRF attacks.
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
                                 "/api/v1/login/**",
                                 "/api/v1/registration/**",
                                 "/api/crops/**",
-                                "/swagger-ui/**", "/v3/api-docs/**"
+                                "/swagger-ui/**", "/v3/api-docs/**",
+                                "/forgotPassword/**",
+                                "/changePassword/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/user/**").authenticated()  // Secure the /api/v1/user/** route
                         .anyRequest().authenticated()  // Secure other routes
@@ -67,7 +70,11 @@ public class WebSecurityConfig {
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder(bCryptPasswordEncoder);
+
+        // Commenting out BCryptPasswordEncoder for now, using NoOpPasswordEncoder
+         provider.setPasswordEncoder(bCryptPasswordEncoder);
+//        provider.setPasswordEncoder(org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance());
+
         provider.setUserDetailsService(appUserService);
         return provider;
     }

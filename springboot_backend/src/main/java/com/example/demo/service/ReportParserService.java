@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 public class ReportParserService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReportParserService.class);
+    private static final int MAX_INPUT_LENGTH = 10000; // Limit input length to avoid overflow
 
     public CropWeatherResponse.CropAnalysis parseReport(String report) {
         if (report == null || report.trim().isEmpty()) {
@@ -33,8 +34,9 @@ public class ReportParserService {
 
         return analysis;
     }
+
     public AlertSeverity parseOverallSeverity(String report) {
-        Pattern severityPattern = Pattern.compile("Overall Severity:\\s+(\\w+)");
+        Pattern severityPattern = Pattern.compile("Overall Severity:\\s+(\\w+)", Pattern.CANON_EQ);
         Matcher matcher = severityPattern.matcher(report);
 
         if (matcher.find()) {
@@ -51,7 +53,7 @@ public class ReportParserService {
     public List<Alert> parseAlerts(String report) {
         List<Alert> alerts = new ArrayList<>();
         Pattern alertPattern = Pattern.compile(
-                "(❌|⚠️|ℹ️)\\s+([^\\n]{1,100})\\n\\s+([^\\n]{1,200})\\n\\s+Severity:\\s+(LOW|MEDIUM|HIGH)"
+                "(❌|⚠️|ℹ️)\\s+([^\\n]{1,100})\\n\\s+([^\\n]{1,200})\\n\\s+Severity:\\s+(LOW|MEDIUM|HIGH)", Pattern.CANON_EQ
         );
         Matcher matcher = alertPattern.matcher(report);
 
@@ -86,39 +88,39 @@ public class ReportParserService {
         return alerts;
     }
 
-    public List<Recommendation> parseRecommendations(String report) {
-        List<Recommendation> recommendations = new ArrayList<>();
+    // Unified parsing for sections to avoid repetition
+    private List<String> parseSection(String report, String sectionHeader) {
+        List<String> results = new ArrayList<>();
 
-        Pattern sectionPattern = Pattern.compile("Recommended Actions:\\n((?:-[^\\n]{1,200}\\n?){1,10})");
+        if (report.length() > MAX_INPUT_LENGTH) {
+            report = report.substring(0, MAX_INPUT_LENGTH); // Truncate long input
+        }
+
+        Pattern sectionPattern = Pattern.compile(sectionHeader + ":\\n((?:-[^\\n]+\\n?)+)", Pattern.CANON_EQ);
         Matcher sectionMatcher = sectionPattern.matcher(report);
 
         if (sectionMatcher.find()) {
-            Pattern recommendationPattern = Pattern.compile("-\\s+([^\\n]+)");
-            Matcher matcher = recommendationPattern.matcher(sectionMatcher.group(1));
+            Matcher itemMatcher = Pattern.compile("-\\s+([^\\n]+)", Pattern.CANON_EQ).matcher(sectionMatcher.group(1));
 
-            while (matcher.find()) {
-                recommendations.add(new Recommendation(matcher.group(1).trim()));
+            while (itemMatcher.find()) {
+                results.add(itemMatcher.group(1).trim());
             }
         }
 
-        return recommendations;
+        return results;
+    }
+
+    public List<Recommendation> parseRecommendations(String report) {
+        List<String> recommendations = parseSection(report, "Recommended Actions");
+        List<Recommendation> result = new ArrayList<>();
+
+        for (String rec : recommendations) {
+            result.add(new Recommendation(rec));
+        }
+        return result;
     }
 
     public List<String> parseInsights(String report) {
-        List<String> insights = new ArrayList<>();
-
-        Pattern sectionPattern = Pattern.compile("Additional Insights:\\n((?:-[^\\n]+\\n?)+)");
-        Matcher sectionMatcher = sectionPattern.matcher(report);
-
-        if (sectionMatcher.find()) {
-            Pattern insightPattern = Pattern.compile("-\\s+([^\\n]+)");
-            Matcher matcher = insightPattern.matcher(sectionMatcher.group(1));
-
-            while (matcher.find()) {
-                insights.add(matcher.group(1).trim());
-            }
-        }
-
-        return insights;
+        return parseSection(report, "Additional Insights");
     }
 }
