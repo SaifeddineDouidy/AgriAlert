@@ -12,3 +12,5 @@ EXPOSE 8087
 
 # Step 5: Define the command to run your Spring Boot application
 CMD ["java", "-jar", "/app/agrialert.jar"]
+
+

@@ -27,5 +27,6 @@ public class ForgotPassword {
     private Date expirationTime;
 
     @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private AppUser user;
 }

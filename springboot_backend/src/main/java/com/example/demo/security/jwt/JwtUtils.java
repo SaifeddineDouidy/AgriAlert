@@ -9,6 +9,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import java.util.Map;
 @Component
 public class JwtUtils {
 
-    private static final Key SIGNING_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private static final Key SIGNING_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // 256 bits key
     private static final Integer EXPIRATION_TIME = 1000 * 60 * 60;
 
     // Generate a JWT token

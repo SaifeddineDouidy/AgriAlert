@@ -1,6 +1,7 @@
 package com.example.demo.utils.registration;
 
 import com.example.demo.model.Location;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

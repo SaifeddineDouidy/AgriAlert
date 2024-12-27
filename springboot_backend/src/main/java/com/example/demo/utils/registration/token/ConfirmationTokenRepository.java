@@ -1,5 +1,6 @@
 package com.example.demo.utils.registration.token;
 
+import com.example.demo.model.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +24,7 @@ public interface ConfirmationTokenRepository
             "WHERE c.token = ?1")
     int updateConfirmedAt(String token,
                           LocalDateTime confirmedAt);
+
+    void deleteByAppUser(AppUser appUser);
+
 }
