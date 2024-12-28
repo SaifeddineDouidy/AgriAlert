@@ -1,19 +1,22 @@
 # AgriAlert: Agricultural Disaster Prevention and Alert System                                                            
   
 
-![AgriAlert Logo](https://github.com/user-attachments/assets/dfe52d6c-cfc8-441d-a95e-7a225b30ea7d)                                                             
-  
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/dfe52d6c-cfc8-441d-a95e-7a225b30ea7d" width="300" alt="AgriAlert Logo">
+</div>
+
 This platform enables real-time agricultural risk monitoring based on weather forecasts, providing farmers with timely alerts and actionable recommendations to protect their crops from adverse weather conditions. Using open-source weather APIs and crop-specific threshold analysis, AgriAlert helps prevent agricultural losses through proactive notifications.
 
 ## Table of Contents
 
-- [Software Architecture](#Software-architecture)
-- [Docker Image](#Docker-Image)
+- [Software Architecture](#software-architecture)
+- [Docker Image](#docker-image)
 - [Frontend](#frontend)
 - [Backend](#backend)
 - [Getting Started](#getting-started)
-- [Video Demonstration](#Video-Demonstration)
+- [Video Demonstration](#video-demonstration)
 - [Contributing](#contributing)
+- [Improvements](#improvements)
 
 ## Software architecture
 ![AgriAlert Architecture](https://github.com/user-attachments/assets/a73ad00c-ca2a-425a-8169-c6f384091420)                    
@@ -259,5 +262,3 @@ We welcome contributions from everyone, and we appreciate your help to make this
 - Added a brief overview of the project under the header for clarity.
 - Structured the setup and installation steps for better user experience.
 - Updated the "Contributors" section for clarity and consistency.
-
-                                       
