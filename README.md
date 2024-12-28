@@ -1,6 +1,5 @@
 # AgriAlert: Agricultural Disaster Prevention and Alert System                                                            
   
-
 <div align="center">
   <img src="https://github.com/user-attachments/assets/dfe52d6c-cfc8-441d-a95e-7a225b30ea7d" width="300" alt="AgriAlert Logo">
 </div>
@@ -252,13 +251,15 @@ Here are step-by-step instructions to set up and run AgriAlert locally:
 We welcome contributions from everyone, and we appreciate your help to make this project even better! If you would like to contribute, please follow these guidelines:
 
 ## Contributors
-- Douidy Sifeddine ([GitHub](https://github.com/SaifeddineDouidy))                    
 - Fattouhi Radwa ([GitHub](https://github.com/Radwa-f))
+- Douidy Sifeddine ([GitHub](https://github.com/SaifeddineDouidy))                    
 - Mohamed Lachgar ([Researchgate](https://www.researchgate.net/profile/Mohamed-Lachgar)) 
 
 
 ### Improvements:
-- Cleaned up the formatting to enhance readability.
-- Added a brief overview of the project under the header for clarity.
-- Structured the setup and installation steps for better user experience.
-- Updated the "Contributors" section for clarity and consistency.
+
+- Ensure clean, maintainable, and scalable code through automated reviews.
+- Code Quality Maintenance.
+- Integrate IoT sensors for more accurate data.
+- AI-Based Enhancements.
+- Enhance architecture for larger datasets and dynamic alerting systems.
